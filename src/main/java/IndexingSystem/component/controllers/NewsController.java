@@ -46,16 +46,22 @@ public class NewsController {
     /**
      * Get all news
      * 
-     * @return List of news or 500 if error
+     * @return List of news, 204 if the list is empty or 500 if error
      */
     @GetMapping
     public ResponseEntity<?> GetAllNews() {
         try {
             List<News> news = h2Repository.readAll();
-            return ResponseEntity.ok(news);
+
+            if (news.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
+
+            return ResponseEntity.ok(Map.of("All news", news));
         } catch (Exception e) {
             System.out.println("Error getting all news: " + e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error getting all news: " + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("Error", "Error getting all news: " + e));
         }
     }
 
@@ -63,50 +69,50 @@ public class NewsController {
      * Get a new by url
      * 
      * @param url
-     * @return new or 404 if not found
+     * @return news or 204 if not found
      */
-    @GetMapping("/new")
+    @GetMapping("/url")
     public ResponseEntity<?> getNews(@RequestBody Map<String, String> entity) {
         News aux;
         try {
             aux = h2Repository.read(entity.get("url"));
             if (aux != null) {
-                return ResponseEntity.ok("'" + entity.get("url") + "'");
+                return ResponseEntity.ok(Map.of("URL", "'" + entity.get("url") + "'"));
             }
 
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("The new with url '" + entity + "' was not found");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (Exception e) {
             System.out.println("Error getting new: " + e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error getting new: " + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("Error", "Error getting new: " + e));
         }
     }
 
     /**
-     * Check if a word is in a url, if it is, return a message, if not, add the new
-     * in the database
-     * 
-     * @param entity
-     * @return 201 if created, 409 if already exists, 500 if error, 200 if the word
-     *         is in the url
+     * Check if a word is in a URL. If found, return a message, otherwise, add the
+     * news to the database.
+     *
+     * @param entity Request body containing the URL and words to check.
+     * @return 201 if created, 409 if already exists, 500 if an error occurs, 200 if
+     *         the word is in the URL.
      */
     @PostMapping("/check")
-    public ResponseEntity<?> postNews(@RequestBody Map<String, ?> entity) {
-        Boolean found = true;
+    public ResponseEntity<Map<String, String>> postNews(@RequestBody Map<String, ?> entity) {
+        boolean found;
         News news = new News();
 
         try {
             found = newsCheck.searchWordsInUrl((String) entity.get("url"), (ArrayList<String>) entity.get("words"));
         } catch (Exception e) {
-            System.out.println("Error checking word in url: " + e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error checking word in url: " + e);
+            System.out.println("Error checking word in URL: " + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("Error", "Error checking word in URL: " + e.getMessage()));
         }
 
         if (found) {
-            return ResponseEntity
-                    .ok("The list is empty or there is one or more words in the url '" + entity.get("url") + "'");
+            return ResponseEntity.ok(Map.of("state", "rejected"));
         } else {
-            news.setUrl((String) entity.get("url").toString());
+            news.setUrl(entity.get("url").toString());
             news.setAuthorized(true);
 
             try {
@@ -114,17 +120,20 @@ public class NewsController {
 
                 if (aux == 0) {
                     return ResponseEntity.status(HttpStatus.CONFLICT)
-                            .body("The new with url '" + news.getUrl() + "' already exists");
+                            .body(Map.of("Error", "The news with URL '" + news.getUrl() + "' already exists"));
                 }
 
-                URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{url}")
-                        .buildAndExpand(news.getUrl()).toUri();
+                URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                        .path("/{url}")
+                        .buildAndExpand(news.getUrl())
+                        .toUri();
 
-                return ResponseEntity.created(location).body(news);
+                return ResponseEntity.created(location).body(Map.of("state", "accepted"));
 
             } catch (Exception e) {
-                System.out.println("Error creating new: " + e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating new: " + e);
+                System.out.println("Error creating news: " + e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("Error", "Error creating news: " + e.getMessage()));
             }
         }
     }
@@ -133,7 +142,7 @@ public class NewsController {
      * Delete a new by id
      * 
      * @param url
-     * @return 204 if deleted, 404 if not found
+     * @return 204 if deleted, 204 if not found
      */
     @DeleteMapping
     public ResponseEntity<?> deleteNews(@RequestBody Map<String, String> entity) {
@@ -142,14 +151,14 @@ public class NewsController {
             int aux = h2Repository.delete(entity.get("url"));
 
             if (aux == 0) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("The new with url '" + entity + "' was not found");
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
             }
 
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             System.out.println("Error deleting new: " + e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting new: " + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("Error", "Error deleting new: " + e));
         }
     }
 

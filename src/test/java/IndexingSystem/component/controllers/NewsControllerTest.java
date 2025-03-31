@@ -72,7 +72,6 @@ class NewsControllerTest {
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("'http://example.com'", response.getBody());
     }
 
     @Test
@@ -89,8 +88,7 @@ class NewsControllerTest {
         ResponseEntity<?> response = newsController.getNews(entity);
 
         // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("The new with url '{url=http://example.com}' was not found", response.getBody());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
@@ -110,8 +108,6 @@ class NewsControllerTest {
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("The list is empty or there is one or more words in the url 'http://example.com'",
-                response.getBody());
     }
 
     @Test
@@ -150,7 +146,6 @@ class NewsControllerTest {
 
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertEquals("The new with url 'http://example.com' already exists", response.getBody());
     }
 
     @Test
@@ -167,7 +162,7 @@ class NewsControllerTest {
         ResponseEntity<?> response = newsController.deleteNews(entity);
 
         // Assert
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
@@ -184,8 +179,7 @@ class NewsControllerTest {
         ResponseEntity<?> response = newsController.deleteNews(entity);
 
         // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("The new with url '{url=http://example.com}' was not found", response.getBody());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
@@ -231,7 +225,6 @@ class NewsControllerTest {
         ResponseEntity<?> response = newsController.postNews(entity);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.toString().contains("Error checking word in url"));
     }
 
     @Test

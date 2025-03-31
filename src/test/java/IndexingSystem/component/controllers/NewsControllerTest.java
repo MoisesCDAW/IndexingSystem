@@ -1,0 +1,270 @@
+package IndexingSystem.component.controllers;
+
+import IndexingSystem.component.models.News;
+import IndexingSystem.component.repository.H2Repository;
+import IndexingSystem.component.services.NewsCheck;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+class NewsControllerTest {
+
+    @InjectMocks
+    private NewsController newsController;
+
+    @Mock
+    private H2Repository h2Repository;
+
+    @Mock
+    private NewsCheck newsCheck;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void testGetAllNews() {
+        // Arrange
+        List<News> newsList = new ArrayList<>();
+        newsList.add(new News());
+        try {
+            when(h2Repository.readAll()).thenReturn(newsList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Act
+        ResponseEntity<?> response = newsController.GetAllNews();
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    void testGetNewsFound() {
+        // Arrange
+        Map<String, String> entity = Map.of("url", "http://example.com");
+        News news = new News();
+        try {
+            when(h2Repository.read("http://example.com")).thenReturn(news);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Act
+        ResponseEntity<?> response = newsController.getNews(entity);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("'http://example.com'", response.getBody());
+    }
+
+    @Test
+    void testGetNewsNotFound() {
+        // Arrange
+        Map<String, String> entity = Map.of("url", "http://example.com");
+        try {
+            when(h2Repository.read("http://example.com")).thenReturn(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Act
+        ResponseEntity<?> response = newsController.getNews(entity);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("The new with url '{url=http://example.com}' was not found", response.getBody());
+    }
+
+    @Test
+    void testPostNewsWordFound() {
+        // Arrange
+        Map<String, Object> entity = Map.of("url", "http://example.com", "words", new ArrayList<>());
+        try {
+            when(newsCheck.searchWordsInUrl(anyString(), any())).thenReturn(true);
+
+            when(h2Repository.create(any(News.class))).thenReturn(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Act
+        ResponseEntity<?> response = newsController.postNews(entity);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("The list is empty or there is one or more words in the url 'http://example.com'",
+                response.getBody());
+    }
+
+    @Test
+    void testPostNewsWordNotFound() {
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new MockHttpServletRequest()));
+
+        // Arrange
+        Map<String, Object> entity = Map.of("url", "http://example.com", "words", new ArrayList<String>());
+        try {
+            when(newsCheck.searchWordsInUrl(anyString(), any())).thenReturn(false);
+            when(h2Repository.create(any(News.class))).thenReturn(1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Act
+        ResponseEntity<?> response = newsController.postNews(entity);
+
+        // Assert
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    }
+
+    @Test
+    void testPostNewsConflict() {
+        // Arrange
+        Map<String, Object> entity = Map.of("url", "http://example.com", "words", new ArrayList<String>());
+        try {
+            when(newsCheck.searchWordsInUrl(anyString(), new ArrayList<>())).thenReturn(false);
+            when(h2Repository.create(any(News.class))).thenReturn(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Act
+        ResponseEntity<?> response = newsController.postNews(entity);
+
+        // Assert
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("The new with url 'http://example.com' already exists", response.getBody());
+    }
+
+    @Test
+    void testDeleteNewsFound() {
+        // Arrange
+        Map<String, String> entity = Map.of("url", "http://example.com");
+        try {
+            when(h2Repository.delete("http://example.com")).thenReturn(1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Act
+        ResponseEntity<?> response = newsController.deleteNews(entity);
+
+        // Assert
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    void testDeleteNewsNotFound() {
+        // Arrange
+        Map<String, String> entity = Map.of("url", "http://example.com");
+        try {
+            when(h2Repository.delete("http://example.com")).thenReturn(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Act
+        ResponseEntity<?> response = newsController.deleteNews(entity);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("The new with url '{url=http://example.com}' was not found", response.getBody());
+    }
+
+    @Test
+    void testGetAllNewsError() {
+        try {
+            when(h2Repository.readAll()).thenThrow(new RuntimeException("Database error"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ResponseEntity<?> response = newsController.GetAllNews();
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(response.toString().contains("Error getting all news"));
+    }
+
+    @Test
+    void testGetNewsError() {
+        Map<String, String> entity = Map.of("url", "http://example.com");
+
+        try {
+            when(h2Repository.read("http://example.com")).thenThrow(new RuntimeException("Database error"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ResponseEntity<?> response = newsController.getNews(entity);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(response.toString().contains("Error getting new"));
+    }
+
+    @Test
+    void testPostNewsCheckWordsError() {
+        Map<String, Object> entity = Map.of("url", "http://example.com", "words", new ArrayList<String>());
+
+        try {
+            when(newsCheck.searchWordsInUrl(anyString(), any())).thenThrow(new RuntimeException("Check error"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ResponseEntity<?> response = newsController.postNews(entity);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(response.toString().contains("Error checking word in url"));
+    }
+
+    @Test
+    void testPostNewsCreateError() {
+        Map<String, Object> entity = Map.of("url", "http://example.com", "words", new ArrayList<String>());
+
+        try {
+            when(newsCheck.searchWordsInUrl(anyString(), any())).thenReturn(false);
+            when(h2Repository.create(any(News.class))).thenThrow(new RuntimeException("DB error"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ResponseEntity<?> response = newsController.postNews(entity);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(response.toString().contains("Error creating new"));
+    }
+
+    @Test
+    void testDeleteNewsError() {
+        Map<String, String> entity = Map.of("url", "http://example.com");
+
+        try {
+            when(h2Repository.delete("http://example.com")).thenThrow(new RuntimeException("Database error"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ResponseEntity<?> response = newsController.deleteNews(entity);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(response.toString().contains("Error deleting new"));
+    }
+
+}

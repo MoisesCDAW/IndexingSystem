@@ -23,7 +23,7 @@ import IndexingSystem.component.services.NewsCheck;
 import jakarta.annotation.PostConstruct;
 
 @RestController
-@RequestMapping("/content")
+@RequestMapping("/api/v1/content")
 public class NewsController {
 
     @Autowired

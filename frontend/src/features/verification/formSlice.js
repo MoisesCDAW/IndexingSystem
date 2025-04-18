@@ -17,13 +17,17 @@ export const formSlice = createSlice({
             // validate URL (basic regex for http/https)
             const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/;
             state.urlValid = urlPattern.test(action.payload);
+            console.log("URL Valid:", state.urlValid);
         },
         setWords: (state, action) => {
             state.words = action.payload;
-            // validate words (non-empty strings)
+            // validate words (non-empty strings and max 15 characters)
             state.wordsValid = Array.isArray(action.payload) &&
                 action.payload.length > 0 &&
-                action.payload.every(word => word.trim() !== '');
+                action.payload.every(word =>
+                    word.trim() !== '' && word.trim().length <= 15
+                );
+            console.log("Words Valid:", state.wordsValid);
         },
         startSubmitting: (state) => {
             state.isSubmitting = true;

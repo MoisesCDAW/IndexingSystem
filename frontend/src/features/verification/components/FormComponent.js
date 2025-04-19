@@ -1,71 +1,74 @@
 import { useAppDispatch, useAppSelector } from '../../../store/utils/useStore';
-import { setUrl, setWords } from '../../verification/formSlice';
+import { setUrl, setWords, selectUrlValid, selectWordsValid } from '../../verification/formSlice';
+import { useState } from 'react';
+import './FormStyle.css';
 
 function FormComponent() {
     const dispatch = useAppDispatch();
-    const { urlValid, wordsValid } = useAppSelector(state => state.form);
+    const urlValid = useAppSelector(selectUrlValid);
+    const wordsValid = useAppSelector(selectWordsValid);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        e.target.reset();
+        setIsSubmitting(true);
+
+        // For simulation purposes, we will wait for 600ms before resetting the form
+        setTimeout(() => {
+            setIsSubmitting(false);
+            e.target.reset();
+        }, 600);
     };
 
     return (
-        <div className="App">
-            <header>
-                <h1
-                    style={{
-                        fontSize: '24px',
-                        marginBottom: '20px',
-                        fontStyle: 'italic',
-                    }}>
-                    URLs Verification</h1>
-                <p>Enter a URL and a list of words to verify.</p>
+        <div className="verification-container">
+            <header className="verification-header">
+                <p className="verification-description">Enter a URL and keywords to verify</p>
             </header>
-            <form onSubmit={handleSubmit}>
-                <div>
+
+            <form onSubmit={handleSubmit} className="verification-form">
+                <div className="form-group">
+                    <label className="form-label">Website URL</label>
                     <input
                         type="text"
                         onChange={(e) => dispatch(setUrl(e.target.value))}
-                        placeholder="Enter the URL"
-                        style={{ width: '400px', marginTop: '10px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        placeholder="https://example.com"
+                        className="form-input"
                     />
                     {urlValid === false && (
-                        <div className="error-message"
-                            style={{ color: 'red', marginTop: '5px', fontSize: '12px' }}>
-                            Please enter a valid URL</div>
+                        <div className="error-message">
+                            <span>⚠️</span>
+                            <span>Please enter a valid URL</span>
+                        </div>
                     )}
                 </div>
 
-                <div>
+                <div className="form-group">
+                    <label className="form-label">Keywords</label>
                     <input
                         type="text"
-                        placeholder="Enter the words (separated by commas)"
+                        placeholder="keyword1, keyword2, keyword3"
                         onChange={(e) => dispatch(setWords(e.target.value.split(',')))}
-                        style={{ width: '400px', marginTop: '10px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        className="form-input"
                     />
                     {wordsValid === false && (
-                        <div className="error-message"
-                            style={{ color: 'red', marginTop: '5px', fontSize: '12px' }}>
-                            Please enter valid words</div>
+                        <div className="error-message">
+                            <span>⚠️</span>
+                            <span>Please enter valid keywords</span>
+                        </div>
                     )}
                 </div>
 
-                <button type="submit" disabled={!urlValid || !wordsValid}
-                    style={{
-                        marginTop: '20px',
-                        padding: '10px 20px',
-                        backgroundColor: (!urlValid || !wordsValid) ? '#8FC4FF' : '#007BFF',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: (!urlValid || !wordsValid) ? 'not-allowed' : 'pointer'
-                    }}>
-                    Validate
+                <button
+                    type="submit"
+                    disabled={!urlValid || !wordsValid || isSubmitting}
+                    className={`submit-button ${(!urlValid || !wordsValid) ? 'button-disabled' : 'button-enabled'}`}
+                >
+                    {isSubmitting ? 'Processing...' : 'Verify Content'}
                 </button>
             </form>
         </div>
     );
 }
 
-export default FormComponent;  
+export default FormComponent;

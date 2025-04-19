@@ -11,9 +11,8 @@ export const uiSlice = createSlice({
             autoHide: true,
             duration: 5000 // milliseconds
         },
-        isDrawerOpen: false,
-        isMobileView: false,
-        theme: 'light' // 'light', 'dark'
+        theme: 'light', // 'light', 'dark'
+        title: "",
     },
     reducers: {
         setActiveTab: (state, action) => {
@@ -32,20 +31,11 @@ export const uiSlice = createSlice({
         hideNotification: (state) => {
             state.notification.visible = false;
         },
-        toggleDrawer: (state) => {
-            state.isDrawerOpen = !state.isDrawerOpen;
-        },
-        setDrawerState: (state, action) => {
-            state.isDrawerOpen = action.payload;
-        },
-        setMobileView: (state, action) => {
-            state.isMobileView = action.payload;
-        },
-        toggleTheme: (state) => {
-            state.theme = state.theme === 'light' ? 'dark' : 'light';
-        },
         setTheme: (state, action) => {
             state.theme = action.payload;
+        },
+        setTitle: (state, action) => {
+            state.title = action.payload;
         }
     }
 });
@@ -54,15 +44,13 @@ export const {
     setActiveTab,
     showNotification,
     hideNotification,
-    toggleDrawer,
-    setDrawerState,
-    setMobileView,
-    toggleTheme,
-    setTheme
+    setTheme,
+    setTitle
 } = uiSlice.actions;
 
 export const selectActiveTab = (state) => state.ui.activeTab;
 export const selectNotification = (state) => state.ui.notification;
 export const selectTheme = (state) => state.ui.theme;
+export const selectTitle = (state) => state.ui.title;
 
 export default uiSlice.reducer;

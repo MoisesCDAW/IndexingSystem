@@ -75,11 +75,12 @@ public class H2Repository {
      * Create a new
      * 
      * @param news
-     * @return 1 if created, 0 if already exists
+     * @return 1 if created, -1 if found, -2 if found and already exists, 0 if
+     *         already exists
      * @throws Exception
      */
     @Transactional
-    public int create(News news) throws Exception {
+    public int create(News news, Boolean found) throws Exception {
         String sql = "INSERT INTO authorized_news (url, authorized) VALUES (?, ?)";
 
         try (Connection conn = connection.getConnection();
@@ -87,14 +88,21 @@ public class H2Repository {
 
             News aux = read(news.getUrl());
             if (aux != null) {
+                if (found) {
+                    return -2;
+                }
                 return 0;
             }
 
-            stmt.setString(1, news.getUrl());
-            stmt.setBoolean(2, news.getAuthorized());
-            stmt.executeUpdate();
+            if (found) {
+                return -1;
+            } else {
+                stmt.setString(1, news.getUrl());
+                stmt.setBoolean(2, news.getAuthorized());
+                stmt.executeUpdate();
 
-            return 1;
+                return 1;
+            }
 
         } catch (Exception e) {
             throw new RuntimeException(e);

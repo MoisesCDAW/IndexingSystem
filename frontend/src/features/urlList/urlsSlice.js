@@ -13,17 +13,18 @@ export const urlsSlice = createSlice({
             state.error = null;
         },
         loadUrlsSuccess: (state, action) => {
-            state.isLoading = false;
             state.urls = action.payload.urls;
-            state.totalPages = action.payload.totalPages || 1;
-            state.currentPage = action.payload.currentPage || 1;
+            state.isLoading = false;
         },
         loadUrlsFailure: (state, action) => {
+            state.error = action.payload.error;
             state.isLoading = false;
-            state.error = action.payload;
         },
         removeUrl: (state, action) => {
-            state.urls = state.urls.filter(url => url.id !== action.payload);
+            state.urls = state.urls.filter(urlItem => {
+                const urlValue = typeof urlItem === 'object' ? Object.values(urlItem)[0] : urlItem;
+                return urlValue !== action.payload;
+            });
         },
     }
 });

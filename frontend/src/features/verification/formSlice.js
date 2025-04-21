@@ -8,8 +8,6 @@ export const formSlice = createSlice({
         urlValid: null,
         wordsValid: null,
         isSubmitting: false,
-        verificationResult: null,
-        error: null
     },
     reducers: {
         setUrl: (state, action) => {
@@ -32,21 +30,11 @@ export const formSlice = createSlice({
             state.error = null;
             state.verificationResult = null;
         },
-        verificationSuccess: (state, action) => {
-            state.isSubmitting = false;
-            state.verificationResult = action.payload;
-        },
-        verificationFailure: (state, action) => {
-            state.isSubmitting = false;
-            state.error = action.payload;
-        },
         resetForm: (state) => {
             state.url = "";
             state.words = [];
             state.urlValid = null;
             state.wordsValid = null;
-            state.verificationResult = null;
-            state.error = null;
         }
     }
 });
@@ -55,11 +43,11 @@ export const {
     setUrl,
     setWords,
     startSubmitting,
-    verificationSuccess,
-    verificationFailure,
     resetForm
 } = formSlice.actions;
 
+export const selectUrl = (state) => state.form.url;
+export const selectWords = (state) => state.form.words;
 export const selectUrlValid = (state) => state.form.urlValid;
 export const selectWordsValid = (state) => state.form.wordsValid;
 

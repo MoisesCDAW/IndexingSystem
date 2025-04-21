@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -96,9 +97,10 @@ class NewsControllerTest {
         // Arrange
         Map<String, Object> entity = Map.of("url", "http://example.com", "words", new ArrayList<>());
         try {
-            when(newsCheck.searchWordsInUrl(anyString(), any())).thenReturn(true);
+            when(newsCheck.searchWordsInUrl(anyString(), any())).thenReturn(new ArrayList<>(List.of(true, "word")));
+            when(h2Repository.create(any(News.class), anyBoolean())).thenReturn(1);
 
-            when(h2Repository.create(any(News.class))).thenReturn(0);
+            when(h2Repository.create(any(News.class), anyBoolean())).thenReturn(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -107,7 +109,7 @@ class NewsControllerTest {
         ResponseEntity<?> response = newsController.postNews(entity);
 
         // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
     }
 
     @Test
@@ -117,8 +119,8 @@ class NewsControllerTest {
         // Arrange
         Map<String, Object> entity = Map.of("url", "http://example.com", "words", new ArrayList<String>());
         try {
-            when(newsCheck.searchWordsInUrl(anyString(), any())).thenReturn(false);
-            when(h2Repository.create(any(News.class))).thenReturn(1);
+            when(newsCheck.searchWordsInUrl(anyString(), any())).thenReturn(new ArrayList<>(List.of(false, "word")));
+            when(h2Repository.create(any(News.class), anyBoolean())).thenReturn(1);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -135,8 +137,9 @@ class NewsControllerTest {
         // Arrange
         Map<String, Object> entity = Map.of("url", "http://example.com", "words", new ArrayList<String>());
         try {
-            when(newsCheck.searchWordsInUrl(anyString(), new ArrayList<>())).thenReturn(false);
-            when(h2Repository.create(any(News.class))).thenReturn(0);
+            when(newsCheck.searchWordsInUrl(anyString(), any(ArrayList.class))).thenReturn(
+                    new ArrayList<>(List.of(false, "word")));
+            when(h2Repository.create(any(News.class), anyBoolean())).thenReturn(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -232,8 +235,8 @@ class NewsControllerTest {
         Map<String, Object> entity = Map.of("url", "http://example.com", "words", new ArrayList<String>());
 
         try {
-            when(newsCheck.searchWordsInUrl(anyString(), any())).thenReturn(false);
-            when(h2Repository.create(any(News.class))).thenThrow(new RuntimeException("DB error"));
+            when(newsCheck.searchWordsInUrl(anyString(), any())).thenReturn(new ArrayList<>(List.of(false, "word")));
+            when(h2Repository.create(any(News.class), anyBoolean())).thenThrow(new RuntimeException("DB error"));
         } catch (Exception e) {
             e.printStackTrace();
         }

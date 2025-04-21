@@ -99,43 +99,55 @@ public class NewsController {
     @PostMapping("/check")
     public ResponseEntity<Map<String, String>> postNews(@RequestBody Map<String, ?> entity) {
         boolean found;
+        String word;
         News news = new News();
 
         try {
-            found = newsCheck.searchWordsInUrl((String) entity.get("url"), (ArrayList<String>) entity.get("words"));
+            ArrayList<Object> aux = newsCheck.searchWordsInUrl((String) entity.get("url"),
+                    (ArrayList<String>) entity.get("words"));
+            found = (Boolean) aux.get(0);
+            word = (String) aux.get(1);
+
         } catch (Exception e) {
             System.out.println("Error checking word in URL: " + e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("Error", "Error checking word in URL: " + e.getMessage()));
         }
 
-        if (found) {
-            return ResponseEntity.ok(Map.of("state", "rejected"));
-        } else {
-            news.setUrl(entity.get("url").toString());
-            news.setAuthorized(true);
+        news.setUrl(entity.get("url").toString());
+        news.setAuthorized(true);
 
-            try {
-                int aux = h2Repository.create(news);
+        try {
+            int aux = h2Repository.create(news, found);
 
-                if (aux == 0) {
+            switch (aux) {
+                case -2:
+                    return ResponseEntity.status(HttpStatus.CONFLICT)
+                            .body(Map.of("Error", "ALERT: '" + word + "' was found in an indexed URL"));
+                case -1:
+                    return ResponseEntity.ok(Map.of("state", "Rejected because '" + word + "' found"));
+                case 0:
                     return ResponseEntity.status(HttpStatus.CONFLICT)
                             .body(Map.of("Error", "The news with URL '" + news.getUrl() + "' already exists"));
-                }
+                case 1:
+                    URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                            .path("/{url}")
+                            .buildAndExpand(news.getUrl())
+                            .toUri();
 
-                URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                        .path("/{url}")
-                        .buildAndExpand(news.getUrl())
-                        .toUri();
+                    return ResponseEntity.created(location).body(Map.of("state", "Accepted."));
 
-                return ResponseEntity.created(location).body(Map.of("state", "accepted"));
-
-            } catch (Exception e) {
-                System.out.println("Error creating news: " + e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("Error", "Error creating news: " + e.getMessage()));
+                default:
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(Map.of("Error", "Error creating news: Unknown error"));
             }
+
+        } catch (Exception e) {
+            System.out.println("Error creating news: " + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("Error", "Error creating news: " + e.getMessage()));
         }
+
     }
 
     /**

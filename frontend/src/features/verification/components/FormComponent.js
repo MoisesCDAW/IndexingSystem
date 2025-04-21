@@ -1,23 +1,55 @@
 import { useAppDispatch, useAppSelector } from '../../../store/utils/useStore';
-import { setUrl, setWords, selectUrlValid, selectWordsValid } from '../../verification/formSlice';
+import { setUrl, setWords, selectUrl, selectWords, selectUrlValid, selectWordsValid, resetForm } from '../../verification/formSlice';
+import { showNotification } from '../../../shared/uiSlice';
 import { useState } from 'react';
 import './FormStyle.css';
+import axios from 'axios';
 
 function FormComponent() {
     const dispatch = useAppDispatch();
+    const url = useAppSelector(selectUrl);
+    const words = useAppSelector(selectWords);
     const urlValid = useAppSelector(selectUrlValid);
     const wordsValid = useAppSelector(selectWordsValid);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // For simulation purposes, we will wait for 600ms before resetting the form
-        setTimeout(() => {
-            setIsSubmitting(false);
-            e.target.reset();
-        }, 600);
+        if (urlValid && wordsValid) {
+            try {
+                const response = await axios.post('/api/v1/content/check', {
+                    url: url,
+                    words: words,
+                });
+
+                dispatch(showNotification({
+                    visible: true,
+                    type: 'success',
+                    message: Object.values(response.data)[0],
+                    autoHide: true,
+                    duration: 5000
+                }));
+
+                if (response.status === 201) {
+                    dispatch(resetForm());
+                    e.target.reset();
+                }
+
+            } catch (error) {
+
+                dispatch(showNotification({
+                    visible: true,
+                    type: 'error',
+                    message: Object.values(error.response.data)[0],
+                    autoHide: false,
+                    duration: 5000
+                }));
+            } finally {
+                setIsSubmitting(false);
+            }
+        }
     };
 
     return (

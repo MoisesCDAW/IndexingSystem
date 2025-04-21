@@ -29,23 +29,18 @@ class ConnectionDBRepositoryTest {
         connectionDBRepository.setPassword("");
     }
 
+    // test 1: test the constructor
     @Test
     void testGettersAndSetters() {
-        // This test verifies that the getter and setter methods of
-        // ConnectionDBRepository work correctly.
-        // It checks that the values set by the setters are properly retrieved by the
-        // getters.
         assertEquals("jdbc:h2:mem:testdb", connectionDBRepository.getUrl());
         assertEquals("org.h2.Driver", connectionDBRepository.getDriverClassName());
         assertEquals("sa", connectionDBRepository.getUsername());
         assertEquals("", connectionDBRepository.getPassword());
     }
 
+    // test 2: test the getConnection method
     @Test
     void testGetConnectionSuccess() {
-        // This test verifies that when DriverManager returns a valid connection, the
-        // getConnection() method
-        // of ConnectionDBRepository returns a non-null connection.
         try (MockedStatic<DriverManager> driverManagerMock = Mockito.mockStatic(DriverManager.class)) {
             Connection mockConnection = mock(Connection.class);
             driverManagerMock.when(() -> DriverManager.getConnection(anyString(), anyString(), anyString()))
@@ -56,11 +51,9 @@ class ConnectionDBRepositoryTest {
         }
     }
 
+    // test 3: test the getConnection method when DriverManager returns null
     @Test
     void testGetConnectionFailure() {
-        // This test simulates a failure when trying to obtain a database connection,
-        // making getConnection()
-        // of ConnectionDBRepository return null.
         try (MockedStatic<DriverManager> driverManagerMock = Mockito.mockStatic(DriverManager.class)) {
             Connection mockConnection = null;
             driverManagerMock.when(() -> DriverManager.getConnection(anyString(), anyString(), anyString()))

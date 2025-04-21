@@ -46,23 +46,17 @@ class H2RepositoryTest {
         lenient().when(connection.createStatement()).thenReturn(statement);
     }
 
+    // test 1: Verify that the table is created
     @Test
     void testCreateTable() throws Exception {
-        // This test verifies that the createTable method in H2Repository does not throw
-        // any exception when executing a query.
-        // It mocks the behavior of statement.execute() to return true, ensuring the
-        // method completes successfully.
         when(statement.execute(anyString())).thenReturn(true);
         assertDoesNotThrow(() -> h2Repository.createTable());
         verify(statement, times(1)).execute(anyString());
     }
 
+    // test 2: Verify that the readAll method retrieves all news from the database
     @Test
     void testReadAll() throws Exception {
-        // This test verifies that the readAll method in H2Repository correctly
-        // processes the ResultSet and returns a list of News.
-        // It mocks the behavior of ResultSet to return valid data for the "url" and
-        // "authorized" fields.
         when(statement.executeQuery(anyString())).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true, false);
         when(resultSet.getString("url")).thenReturn("http://example.com");
@@ -74,12 +68,9 @@ class H2RepositoryTest {
         assertTrue(newsList.get(0).getAuthorized());
     }
 
+    // test 3: Verify that the read method retrieves a single news item from the
     @Test
     void testRead() throws Exception {
-        // This test verifies that the read method in H2Repository retrieves a single
-        // News object from the database based on the URL.
-        // It mocks the behavior of ResultSet to return valid data for the "url" and
-        // "authorized" fields.
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true);
@@ -92,28 +83,23 @@ class H2RepositoryTest {
         assertTrue(news.getAuthorized());
     }
 
+    // test 4: Verify that the create method inserts a new news item into the
+    // database
     @Test
     void testCreate() throws Exception {
-        // This test verifies that the create method in H2Repository inserts a new News
-        // object into the database.
-        // It mocks the behavior of PreparedStatement to simulate the insertion of data,
-        // returning 1 to indicate success.
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
         when(preparedStatement.executeQuery()).thenReturn(resultSet); // read() function
         when(resultSet.next()).thenReturn(false);
 
         News news = new News("http://example.com", true);
-        int result = h2Repository.create(news);
+        int result = h2Repository.create(news, false);
         assertEquals(1, result);
     }
 
+    // test 5: Verify that the delete method removes a news item from the database
     @Test
     void testDelete() throws Exception {
-        // This test verifies that the delete method in H2Repository removes a News
-        // object from the database.
-        // It mocks the behavior of PreparedStatement to simulate the deletion process,
-        // returning 1 to indicate success.
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
@@ -121,9 +107,9 @@ class H2RepositoryTest {
         assertEquals(1, result);
     }
 
+    // test 6: Verify that not found news returns null
     @Test
     void testRead_NotFound() throws Exception {
-        // Simula un resultado vacío en el ResultSet
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(false);
@@ -132,6 +118,8 @@ class H2RepositoryTest {
         assertNull(news);
     }
 
+    // test 7: Verify that the create method returns -2 if the news already exists
+    // and the word is found
     @Test
     void testCreate_AlreadyExists() throws Exception {
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
@@ -139,10 +127,11 @@ class H2RepositoryTest {
         when(resultSet.next()).thenReturn(true);
 
         News news = new News("http://example.com", true);
-        int result = h2Repository.create(news);
-        assertEquals(0, result);
+        int result = h2Repository.create(news, true);
+        assertEquals(-2, result);
     }
 
+    // test 8: Verify that the delete method returns 0 if the news is not found
     @Test
     void testDelete_NotFound() throws Exception {
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
@@ -152,30 +141,40 @@ class H2RepositoryTest {
         assertEquals(0, result);
     }
 
+    // test 9: Verify that the create method returns a exception if the news is not
+    // found
     @Test
     void testCreateTable_Exception() throws Exception {
         when(statement.execute(anyString())).thenThrow(new RuntimeException("DB Error"));
         assertThrows(RuntimeException.class, () -> h2Repository.createTable());
     }
 
+    // test 10: Verify that the readAll method returns a exception if ocurred a
+    // error with the database
     @Test
     void testReadAll_Exception() throws Exception {
         when(statement.executeQuery(anyString())).thenThrow(new RuntimeException("DB Error"));
         assertThrows(RuntimeException.class, () -> h2Repository.readAll());
     }
 
+    // test 11: Verify that the read method returns a exception if ocurred a error
+    // with the database
     @Test
     void testRead_Exception() throws Exception {
         when(connection.prepareStatement(anyString())).thenThrow(new RuntimeException("DB Error"));
         assertThrows(RuntimeException.class, () -> h2Repository.read("http://example.com"));
     }
 
+    // test 12: Verify that the create method returns a exception if ocurred a error
+    // with the database
     @Test
     void testCreate_Exception() throws Exception {
         when(connection.prepareStatement(anyString())).thenThrow(new RuntimeException("DB Error"));
-        assertThrows(RuntimeException.class, () -> h2Repository.create(new News("http://example.com", true)));
+        assertThrows(RuntimeException.class, () -> h2Repository.create(new News("http://example.com", true), true));
     }
 
+    // test 13: Verify that the delete method returns a exception if ocurred a error
+    // with the database
     @Test
     void testDelete_Exception() throws Exception {
         when(connection.prepareStatement(anyString())).thenThrow(new RuntimeException("DB Error"));

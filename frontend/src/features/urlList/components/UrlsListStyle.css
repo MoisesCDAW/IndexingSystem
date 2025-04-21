@@ -78,3 +78,14 @@
     font-size: 0.8rem;
     color: #888;
 }
+
+.delete-icon-container {
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.delete-icon-container:hover {
+    background-color: rgba(254, 110, 110, 0.1);
+}

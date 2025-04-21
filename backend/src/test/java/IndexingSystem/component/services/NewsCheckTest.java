@@ -10,21 +10,27 @@ import java.util.ArrayList;
 
 class NewsCheckTest {
 
-    // Test 1: Verificar si la lista de palabras está vacía
+    // Test 1: Verify that an exception is thrown if the list of words is empty
     @Test
-    void testSearchWordsInUrlWithEmptyList() throws Exception {
+    void testSearchWordsInUrlWithEmptyList() {
         // Arrange
         NewsCheck newsCheck = new NewsCheck();
-        ArrayList<String> words = new ArrayList<>(); // Lista vacía
+        ArrayList<String> words = new ArrayList<>(); // Empty list
 
-        // Act
-        Boolean result = newsCheck.searchWordsInUrl("http://example.com", words);
+        // Act & Assert
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            newsCheck.searchWordsInUrl("http://example.com", words);
+        });
 
-        // Assert
-        assertTrue(result); // Esperamos que retorne true si la lista está vacía
+        // Verify that the exception contains the expected message
+        String expectedMessage = "Error getting page content";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
+        assertTrue(actualMessage.contains("IllegalArgumentException"));
     }
 
-    // Test 2: Verificar si la URL contiene la palabra
+    // Test 2: Verify if the URL contains the word
     @Test
     void testSearchWordsInUrlWithWordFound() throws Exception {
         // Arrange
@@ -32,25 +38,24 @@ class NewsCheckTest {
         ArrayList<String> words = new ArrayList<>();
         words.add("example");
 
-        // Mock para simular la respuesta de Jsoup
+        // Mock to simulate Jsoup response
         Document mockDocument = mock(Document.class);
         when(mockDocument.body()).thenReturn(mock(org.jsoup.nodes.Element.class));
         when(mockDocument.body().text()).thenReturn("This is an example text");
 
-        // Mock para simular la conexión
+        // Mock to simulate the connection
         Connection mockConnection = mock(Connection.class);
         when(mockConnection.get()).thenReturn(mockDocument);
-        // JsoupConnectionMocker.setConnection(mockConnection); // Método que simula el
-        // comportamiento de Jsoup
 
         // Act
-        Boolean result = newsCheck.searchWordsInUrl("http://example.com", words);
+        ArrayList<Object> aux = new ArrayList<>(newsCheck.searchWordsInUrl("http://example.com", words));
+        Boolean result = (Boolean) aux.get(0);
 
         // Assert
-        assertTrue(result); // Esperamos que retorne true ya que la palabra "example" está en el texto
+        assertTrue(result); // We expect it to return true since the word "example" is in the text
     }
 
-    // Test 3: Verificar que no se encuentre la palabra
+    // Test 3: Verify that the word is not found
     @Test
     void testSearchWordsInUrlWithWordNotFound() throws Exception {
         // Arrange
@@ -58,17 +63,18 @@ class NewsCheckTest {
         ArrayList<String> words = new ArrayList<>();
         words.add("nonexistent");
 
-        // Mock para simular la respuesta de Jsoup
+        // Mock to simulate Jsoup response
         Document mockDocument = mock(Document.class);
         when(mockDocument.body()).thenReturn(mock(org.jsoup.nodes.Element.class));
         when(mockDocument.body().text()).thenReturn("This is a sample text");
 
-        // Mock para simular la conexión
+        // Mock to simulate the connection
         Connection mockConnection = mock(Connection.class);
         when(mockConnection.get()).thenReturn(mockDocument);
 
         // Act
-        Boolean result = newsCheck.searchWordsInUrl("http://example.com", words);
+        ArrayList<Object> aux = new ArrayList<>(newsCheck.searchWordsInUrl("http://example.com", words));
+        Boolean result = (Boolean) aux.get(0);
 
         // Assert
         assertFalse(result);

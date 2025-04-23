@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectNotification, hideNotification } from '../uiSlice';
+import { selectNotification, hideNotification } from '../../uiSlice';
 import './NotificationStyle.css';
 
 const NotificationComponent = () => {

@@ -178,6 +178,20 @@
                             <arguments>run build</arguments>
                         </configuration>
                     </execution>
+                    
+                    <!-- Ejecuta los tests del frontend -->
+                    <execution>
+                        <id>npm-test</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration>
+                            <workingDirectory>../frontend</workingDirectory>
+                            <arguments>run test -- --coverage --watchAll=false</arguments>
+                            <!-- <skip>true</skip> -->
+                        </configuration>
+                    </execution>
                 </executions>
                 <configuration>
                     <nodeVersion>v22.14.0</nodeVersion>

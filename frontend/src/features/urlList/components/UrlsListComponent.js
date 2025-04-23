@@ -1,79 +1,20 @@
 import { useEffect } from 'react';
-import axios from 'axios';
 import { useAppDispatch, useAppSelector } from '../../../store/utils/useStore';
-import { showNotification } from '../../../shared/uiSlice';
-import { startLoading, loadUrlsSuccess, loadUrlsFailure, selectUrls, selectUrlsLoading, removeUrl } from '../urlsSlice';
+import { selectUrls, selectUrlsStatus, fetchUrlsAsync, removeUrlAsync } from '../urlsSlice';
 import './UrlsListStyle.css';
 
 function UrlsList() {
     const dispatch = useAppDispatch();
     const urls = useAppSelector(selectUrls);
-    const loading = useAppSelector(selectUrlsLoading);
+    const status = useAppSelector(selectUrlsStatus);
 
     useEffect(() => {
-        const fetchUrls = async () => {
-            dispatch(startLoading());
-
-            try {
-                const response = await axios.get('/api/v1/content');
-
-                if (response.status === 200) {
-                    dispatch(loadUrlsSuccess({
-                        urls: Object.values(response.data).map(url => Object.values(url)[0]),
-                    }));
-
-                }
-
-                if (response.status === 204) {
-                    dispatch(loadUrlsSuccess({ urls: [] }));
-                }
-
-            } catch (error) {
-                dispatch(loadUrlsFailure({ error: Object.values(error.response.data)[0] }));
-                dispatch(showNotification({
-                    visible: true,
-                    type: 'error',
-                    message: Object.values(error.response.data)[0],
-                    autoHide: true,
-                    duration: 5000
-                }));
-            }
-
-        };
-
-        fetchUrls();
-    }, [dispatch]);
-
-    const handleRemoveUrl = async (urlToRemove) => {
-        try {
-
-            await axios.delete('/api/v1/content', {
-                data: { url: urlToRemove }
-            });
-
-            dispatch(removeUrl(urlToRemove));
-
-            dispatch(showNotification({
-                visible: true,
-                type: 'success',
-                message: 'URL eliminada con éxito',
-                autoHide: true,
-                duration: 3000
-            }));
-        } catch (error) {
-
-            console.error('Error al eliminar URL:', error);
-            dispatch(showNotification({
-                visible: true,
-                type: 'error',
-                message: 'Error al eliminar la URL',
-                autoHide: true,
-                duration: 5000
-            }));
+        if (!status) {
+            dispatch(fetchUrlsAsync());
         }
-    };
+    }, [status, dispatch]);
 
-    if (loading) {
+    if (status === 'loading') {
         return (
             <div className="url-list-container loading">
                 <div className="loader"></div>
@@ -82,7 +23,7 @@ function UrlsList() {
         );
     }
 
-    if (urls.length === 0) {
+    if (urls.length === 0 && status === 'succeeded') {
         return (
             <div className="url-list-container empty">
                 <p>No hay URLs disponibles</p>
@@ -95,19 +36,18 @@ function UrlsList() {
         <div className="url-list-container">
             <div className="url-cards-grid">
                 {urls.map((urlItem, index) => {
-                    const url = Object.values(urlItem)[0];
 
                     return (
                         <div key={index} className="url-card">
                             <div className="url-content">
-                                <a href={url} target="_blank" rel="noopener noreferrer" className="url-link">
-                                    {url.length > 50 ? `${url.substring(0, 47)}...` : url}
+                                <a href={urlItem} target="_blank" rel="noopener noreferrer" className="url-link">
+                                    {urlItem.length > 50 ? `${urlItem.substring(0, 47)}...` : urlItem}
                                 </a>
-                                <span className="url-domain">{new URL(url).hostname}</span>
+                                <span className="url-domain">{new URL(urlItem).hostname}</span>
                             </div>
                             <div
                                 className="delete-icon-container"
-                                onClick={() => handleRemoveUrl(url)}
+                                onClick={() => dispatch(removeUrlAsync(urlItem))}
                                 title="Eliminar URL"
                             >
                                 <svg className="url-icon" xmlns="http://www.w3.org/2000/svg" id="Outline" viewBox="0 0 24 24" fill='#fe6e6e'>

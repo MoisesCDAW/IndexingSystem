@@ -1,56 +1,17 @@
 import { useAppDispatch, useAppSelector } from '../../../store/utils/useStore';
-import { setUrl, setWords, selectUrl, selectWords, selectUrlValid, selectWordsValid, resetForm } from '../../verification/formSlice';
-import { showNotification } from '../../../shared/uiSlice';
-import { useState } from 'react';
+import { setUrl, setWords, selectUrlValid, selectWordsValid, selectFormStatus, addUrlAsync } from '../../verification/formSlice';
 import './FormStyle.css';
-import axios from 'axios';
 
 function FormComponent() {
     const dispatch = useAppDispatch();
-    const url = useAppSelector(selectUrl);
-    const words = useAppSelector(selectWords);
     const urlValid = useAppSelector(selectUrlValid);
     const wordsValid = useAppSelector(selectWordsValid);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const status = useAppSelector(selectFormStatus);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        setIsSubmitting(true);
-
-        if (urlValid && wordsValid) {
-            try {
-                const response = await axios.post('/api/v1/content/check', {
-                    url: url,
-                    words: words,
-                });
-
-                dispatch(showNotification({
-                    visible: true,
-                    type: 'success',
-                    message: Object.values(response.data)[0],
-                    autoHide: true,
-                    duration: 5000
-                }));
-
-                if (response.status === 201) {
-                    dispatch(resetForm());
-                    e.target.reset();
-                }
-
-            } catch (error) {
-
-                dispatch(showNotification({
-                    visible: true,
-                    type: 'error',
-                    message: Object.values(error.response.data)[0],
-                    autoHide: false,
-                    duration: 5000
-                }));
-            } finally {
-                setIsSubmitting(false);
-            }
-        }
-    };
+        dispatch(addUrlAsync(e.target));
+    }
 
     return (
         <div className="verification-container">
@@ -93,10 +54,10 @@ function FormComponent() {
 
                 <button
                     type="submit"
-                    disabled={!urlValid || !wordsValid || isSubmitting}
+                    disabled={!urlValid || !wordsValid}
                     className={`submit-button ${(!urlValid || !wordsValid) ? 'button-disabled' : 'button-enabled'}`}
                 >
-                    {isSubmitting ? 'Processing...' : 'Verify Content'}
+                    {status === 'loading' ? 'Processing...' : 'Verify Content'}
                 </button>
             </form>
         </div>

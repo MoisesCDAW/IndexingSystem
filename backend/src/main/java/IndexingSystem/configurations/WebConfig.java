@@ -22,8 +22,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResolver(new SpaResolver());
     }
 
-    private static class SpaResolver implements ResourceResolver {
-        private final Resource indexHtml = new ClassPathResource("/static/index.html");
+    static class SpaResolver implements ResourceResolver {
+        final Resource indexHtml = new ClassPathResource("/static/index.html");
 
         @Override
         public Resource resolveResource(HttpServletRequest request, String requestPath,

@@ -1,22 +1,22 @@
 #!/bin/bash
 
 handle_error() {
-    echo "Error durante el build: $1"
+    echo "Error during build: $1"
     exit 1
 }
 
-echo "--- Ejecutando npm install en frontend ---"
-cd frontend && npm install || handle_error "npm install falló"
+echo "--- Running npm install in frontend ---"
+cd frontend && npm install || handle_error "npm install failed"
 cd ..
 
-echo "--- Ejecutando npm test ---"
-cd frontend && npm test || handle_error "npm test falló"
+echo "--- Running npm test ---"
+cd frontend && npm test || handle_error "npm test failed"
 cd ..
 
-echo "--- Ejecutando npm run build ---"
-cd frontend && npm run build || handle_error "npm run build falló"
+echo "--- Running npm run build ---"
+cd frontend && npm run build || handle_error "npm run build failed"
 cd ..
 
-echo "--- Ejecutando mvn clean install ---"
-cd backend && mvn clean install || handle_error "mvn clean install falló"
+echo "--- Running mvn clean install ---"
+cd backend && mvn clean install || handle_error "mvn clean install failed"
 cd ..

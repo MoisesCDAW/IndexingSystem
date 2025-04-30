@@ -8,7 +8,8 @@
     "serve": "webpack serve",
     "watch": "webpack --watch",
     "start": "webpack serve --mode=development --open",
-    "test": "jest --watchAll=false --coverage --runInBand --passWithNoTests"
+    "test": "jest --watchAll=false --coverage --runInBand --passWithNoTests",
+    "test:update-snapshots": "jest -u"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
@@ -20,8 +21,11 @@
     "html-loader": "^5.1.0",
     "html-webpack-plugin": "^5.6.3",
     "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "mini-css-extract-plugin": "^2.9.2",
+    "redux-mock-store": "^1.5.5",
     "style-loader": "^4.0.0",
+    "util": "^0.12.5",
     "webpack": "^5.99.6",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.1"
@@ -41,5 +45,14 @@
     "last 2 versions",
     "Firefox ESR",
     "not dead"
-  ]
+  ],
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ],
+    "moduleNameMapper": {
+      "\\.css$": "<rootDir>/mocks/styleMock.js"
+    }
+  }
 }

@@ -19,7 +19,7 @@ function FormComponent() {
                 <p className="verification-description">Enter a URL and keywords to verify</p>
             </header>
 
-            <form onSubmit={handleSubmit} className="verification-form">
+            <form onSubmit={handleSubmit} className="verification-form" name='form'>
                 <div className="form-group">
                     <label className="form-label">Website URL</label>
                     <input

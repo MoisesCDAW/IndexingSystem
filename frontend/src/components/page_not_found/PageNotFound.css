@@ -5,6 +5,8 @@
     min-height: 70vh;
     padding: 2rem;
     text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+    color: black;
 }
 
 .not-found-title {

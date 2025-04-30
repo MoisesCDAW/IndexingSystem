@@ -98,16 +98,21 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/spring_boot/main/java</sourceDirectory>
-        <testSourceDirectory>src/spring_boot/test</testSourceDirectory>
         <resources>
             <resource>
-                <directory>src/spring_boot/main/resources</directory> 
+                <directory>src/main/resources</directory> 
+            </resource>
+            <resource>
+                <directory>${project.basedir}/../frontend/dist</directory>
+                <targetPath>static</targetPath>
+                <includes>
+                    <include>**/*</include>
+                </includes>
             </resource>
         </resources>
         <testResources>
             <testResource>
-                <directory>src/spring_boot/test</directory>
+                <directory>src/test</directory>
             </testResource>
         </testResources>
         <plugins>
@@ -148,30 +153,6 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Plugin para copiar los recursos del frontend al classpath -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-frontend-resources</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>./dist</directory>
-                                    <filtering>false</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -1,8 +1,7 @@
-/target
-/node
-/node_modules
-/dist
-/coverage
+backend/target
+frontend/node_modules
+frontend/dist
+frontend/coverage
 
 ### VS Code ###
 .vscode/

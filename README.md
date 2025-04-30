@@ -9,12 +9,13 @@ DESPLIEGUE
 
 Ejecutar desde la raíz del proyecto:
 
-1. node run_build.js
+1. ./scripts/build_mac.sh o .\scripts\build_win.cmd
     * Esto ejecutará los test y creará el .jar del programa
     * Los resultados de las pruebas se pueden ver en: backend/target/site/jacoco/index.html
 
 2. java -jar target/IndexingSystem-1.0.0.jar
     * Para levantar el servicio, el cual usará el puerto 80
+    * "http://localhost"
 
 
 ENDPOINTS

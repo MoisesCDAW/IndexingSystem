@@ -4,19 +4,20 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
-    entry: './src/react_js/main/index.jsx',
+    entry: './src/index.jsx',
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: '[name].[contenthash].js',
         clean: true,
     },
     devServer: {
+        historyApiFallback: true,
         open: true,
         host: 'localhost',
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: './public/index.html',
+            template: './index.html',
         }),
 
         new MiniCssExtractPlugin(),

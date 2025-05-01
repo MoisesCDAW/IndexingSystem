@@ -37,3 +37,9 @@ Ruta base: localhost:80/IndexingSystem/api/v1
 4. DELETE /api/v1/content
     * Formato: {"url": "https://www.example.com"}
     * Elimina una URL de la base de datos
+
+
+TESTS COVERAGE
+
+1. Java: backend/target/site/jacoco/index.html
+2. React: frontend/coverage/lcov-report/index.html
